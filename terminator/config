@@ -1,0 +1,24 @@
+# ~/.config/terminator/config
+
+[global_config]
+  enabled_plugins = ,
+[keybindings]
+[profiles]
+  [[default]]
+    # use_system_font = False
+    # font = Monospace 14
+    background_color = "#004353"
+    background_image = None
+    scrollback_infinite = True
+    foreground_color = "#ffffff"
+[layouts]
+  [[default]]
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+    [[[window0]]]
+      type = Window
+      parent = ""
+      # size = 900, 450
+[plugins]
+
