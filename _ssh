@@ -1,0 +1,11 @@
+#compdef ssh
+
+# add to your .zshrc:
+# fpath=(/path/to/this/file's/dir $fpath)
+
+# hosts_file gets populated externally
+hosts_file=$HOME/ssh-hosts
+hosts=( ${(uf)"$(< $hosts_file)"} )
+
+_describe "SSH hosts found in $hosts_file" hosts
+
