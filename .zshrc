@@ -146,3 +146,19 @@ export PYTHONSTARTUP=~/.pystartup
 
 # gi tpull -> git pull
 gi () { arg=$1; if [[ "$arg" == "tpull" ]]; then git pull; fi }
+
+# feature branches
+function gp {
+    out="`git push 2>&1`"
+    echo $out | grep -q "git push"
+    if [ $? -eq 0 ]; then
+        cmd="`echo $out | grep git | perl -pe 's/.*(git push --set-upstream.+)/$1/'`"
+        read "response?$cmd [y/n] "
+        if [[ "$response" =~ ^[yY]$ ]]; then
+            eval $cmd
+        fi
+    else
+        echo $out
+    fi
+}
+
