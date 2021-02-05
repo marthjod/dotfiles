@@ -1,28 +1,28 @@
-# Set up the prompt
-
+# shell
+#
 autoload -Uz promptinit
 promptinit
 prompt adam1
 
+autoload -Uz compinit
+compinit
+
 setopt histignorealldups sharehistory
+setopt correct
+setopt extendedglob
 
-#bindkey -s '5~' "ls -alh\n"
-
-# Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
 HISTSIZE=1000
 SAVEHIST=1000
 HISTFILE=~/.zsh_history
-
-# Use modern completion system
-autoload -Uz compinit
-compinit
 
 zstyle ':completion:*' auto-description 'specify: %d'
 zstyle ':completion:*' completer _expand _complete _correct _approximate
 zstyle ':completion:*' format 'Completing %d'
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' menu select=2
-eval "$(dircolors -b)"
+# GNU
+# eval "$(dircolors -b)"
+export LS_COLORS="di=31;41:ln=31;41:so=31;41:pi=31;41:ex=31;41:bd=31;41:cd=31;41:su=31;41:sg=31;41:tw=31;41:ow=31;41:"
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' list-colors ''
 zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
@@ -35,43 +35,50 @@ zstyle ':completion:*' verbose true
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
-alias -r grep='grep --color=auto'
-alias -r dc='cd'
-alias -r apt='sudo apt-get update && sudo apt-get upgrade -y'
-alias -r l='ls -al'
-alias -r ai='ack -i'
+# os
+export EDITOR=vim
 
+alias -r grep='grep --color=auto'
+alias -r egrep'egrep --color=auto'
+
+alias -r sfv="sift -n --exclude-dirs .git --exclude-dirs vendor"
+#alias -r sf="rg --line-number --with-filename"
+alias -r sf="sift -n --exclude-dirs .git"
+alias -r sfiv="sfv -i"
+alias -r sfi="sift -n -i --exclude-dirs .git"
+#alias -r sfi="rg --line-number --ignore-case --with-filename"
+alias -r dc='cd'
+alias -r l='ls -alh'
+
+function f {
+    local what=$1
+
+    find -iname "*$what*" | grep "$what"
+}
+
+# python
+export PYTHONSTARTUP=~/.pystartup
+alias -r py='python'
+export PATH="/home/martin/.pyenv/bin:$PATH"
+alias -r svba='source venv/bin/activate'
+
+# golang
+export GOPATH=$HOME/src/go
+export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+
+# git
 alias -r gis='git status'
 alias -r gst='git stash'
 alias -r gsp='git stash pop'
-alias -r gg='gitg 2>/dev/null&'
-alias -r gri='git rebase -i'
+# alias -r gg='gitg 2>&1 >/dev/null&'
+alias -r gg='smerge -n . 2>&1 >/dev/null&'
+alias -r gri='git rebase -i HEAD~5'
 alias -r gr='git rebase'
 alias -r gc='git checkout'
-alias -r gf='git fetch'
 alias -r gcb='git checkout -b'
-alias -r py='python' 
-alias -g ...='cd ../..'
-alias -g ....='cd ../../..'
-
-alias -s feature='gedit'
-
-# vagrant
-alias -r vg='vagrant'
-alias -r vu='vagrant up --no-provision'
-alias -r vp='vagrant provision'
-alias -r vh='vagrant halt'
-alias -r vs='vagrant ssh'
-alias -r vst='vagrant status'
-alias -r vup='vagrant up --provision'
-
-alias -r bh='behave -wk'
-alias -r bk='behave -k'
-
-
-
-setopt correct
-setopt extendedglob
+alias -r gpr='git pull -r'
+alias -r gl='git log'
+alias -r glp='git log -p'
 
 # Adapted from code found at <https://gist.github.com/1712320>.
 
@@ -142,16 +149,11 @@ git_prompt_string() {
 # Set the right-hand prompt
 RPS1='$(git_prompt_string)'
 
-export PYTHONSTARTUP=~/.pystartup
-
-# gi tpull -> git pull
-gi () { arg=$1; if [[ "$arg" == "tpull" ]]; then git pull; fi }
-
 # feature branches
 function gp {
     out="`git push 2>&1`"
-    echo $out | grep -q "git push"
-    if [ $? -eq 0 ]; then
+   echo $out | grep -q "git push"
+   if [ $? -eq 0 ]; then
         cmd="`echo $out | grep git | perl -pe 's/.*(git push --set-upstream.+)/$1/'`"
         read "response?$cmd [y/n] "
         if [[ "$response" =~ ^[yY]$ ]]; then
@@ -161,4 +163,32 @@ function gp {
         echo $out
     fi
 }
+
+alias gethash="git rev-parse --short=8 HEAD | tr -d '\n' | xclip -selection c"
+
+alias -g jq.="| jq -R 'fromjson? | .'"  
+
+if [ -x "/usr/bin/kubectl" ]; then
+    source <(kubectl completion zsh)
+fi
+
+# gcloud
+alias -r sshi="ssh -o StrictHostKeyChecking=no 2>/dev/null"
+alias -r scpi="scp -o StrictHostKeyChecking=no 2>/dev/null"
+alias -r gcv="gcloud compute instances"
+#alias -r gcvl='gcv list --format "table(name:sort=1, zone, machineType, scheduling.preemptible.yesno(yes=true, no=''), networkInterfaces[].networkIP.notnull().list():label=INTERNAL_IP, networkInterfaces[].accessConfigs[0].natIP.notnull().list():label=EXTERNAL_IP, status, metadata.items[DBRole], metadata.items[Cluster], metadata.items[Seednode])"'
+#alias -r gcvl='gcv list --format "table(name:sort=1, zone.basename(), machineType.machine_type().basename(), scheduling.preemptible.yesno(yes=true, no=''), networkInterfaces[].networkIP.notnull().list():label=INTERNAL_IP, networkInterfaces[].accessConfigs[0].natIP.notnull().list():label=EXTERNAL_IP, status, metadata.items[DBRole], metadata.items[Cluster], metadata.items[Seednode])"'
+alias -r gcssh="gcloud compute ssh"
+
+function gcvl {
+    local pattern=$1
+    if [ -z "${pattern}" ]; then pattern="."; fi
+    gcv list --format "table(name:sort=1, zone, machineType, scheduling.preemptible.yesno(yes=true, no=''), networkInterfaces[].networkIP.notnull().list():label=INTERNAL_IP, networkInterfaces[].accessConfigs[0].natIP.notnull().list():label=EXTERNAL_IP, status, metadata.items[DBRole], metadata.items[Cluster], metadata.items[Seednode])" | grep $pattern
+}
+
+
+alias -r grm="git checkout master && git pull --rebase && git checkout - && git rebase master && git checkout master && git rebase -"
+
+autoload -U +X bashcompinit && bashcompinit
+
 
